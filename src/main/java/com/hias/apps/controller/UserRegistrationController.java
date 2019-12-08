@@ -1,7 +1,6 @@
 package com.hias.apps.controller;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -9,24 +8,18 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
-import javax.validation.Valid;
-
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.SimpleMailMessage;
-import org.springframework.validation.BindingResult;
-import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.hias.apps.domain.Role;
@@ -35,7 +28,6 @@ import com.hias.apps.domain.UserProfile;
 import com.hias.apps.domain.UserRegister;
 import com.hias.apps.domain.VerificationToken;
 import com.hias.apps.dto.RegisterDto;
-import com.hias.apps.dto.UserDto;
 import com.hias.apps.repository.UserRepository;
 import com.hias.apps.repository.VerificationTokenRepository;
 import com.hias.apps.security.JwtTokenProvider;
@@ -67,6 +59,15 @@ public class UserRegistrationController {
 
 	@Autowired
 	private JwtTokenProvider jwtTokenProvider;
+	
+	@Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private VerificationTokenRepository confirmationTokenRepository;
+
+    @Autowired
+    private EmailSenderService emailSenderService;
 
 	/**Constants*/
 	public static final String USER_TYPE_FREE = "member";
@@ -121,6 +122,21 @@ public class UserRegistrationController {
 						mapData.put("type", "Bearer");
 						mapData.put("token", tokens);
 					}
+
+
+		            VerificationToken confirmationToken = new VerificationToken(user);
+
+		            confirmationTokenRepository.save(confirmationToken);
+
+		            SimpleMailMessage mailMessage = new SimpleMailMessage();
+		            mailMessage.setTo(user.get().getEmail());
+		            mailMessage.setSubject("Complete Registration!");
+		            mailMessage.setFrom("xxx@gmail.com");
+		            mailMessage.setText("To confirm your account, please click here : "
+		            +"http://localhost:8085/register/confirm-account?token="+confirmationToken.getConfirmationToken());
+
+		            emailSenderService.sendEmail(mailMessage);
+
 					Map<String, Object> mapResponse = new HashMap<>();
 					mapResponse.put("register", mapData);
 					response.put("data", mapResponse);
@@ -160,60 +176,6 @@ public class UserRegistrationController {
 		userService.insertUser(user);
 	}
 
-	
-	//  new Registration Service
-	@Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private VerificationTokenRepository confirmationTokenRepository;
-
-    @Autowired
-    private EmailSenderService emailSenderService;
-
-    @RequestMapping(value="/register", method = RequestMethod.GET)
-    public ModelAndView displayRegistration(ModelAndView modelAndView, User user)
-    {
-        modelAndView.addObject("user", user);
-        modelAndView.setViewName("register");
-        return modelAndView;
-    }
-
-    @RequestMapping(value="/register", method = RequestMethod.POST)
-    public ModelAndView registerUser(ModelAndView modelAndView, User user)
-    {
-
-        User existingUser = userRepository.findByEmailIgnoreCase(user.getEmail());
-        if(existingUser != null)
-        {
-            modelAndView.addObject("message","This email already exists!");
-            modelAndView.setViewName("error");
-        }
-        else
-        {
-            userRepository.save(user);
-
-            VerificationToken confirmationToken = new VerificationToken(user);
-
-            confirmationTokenRepository.save(confirmationToken);
-
-            SimpleMailMessage mailMessage = new SimpleMailMessage();
-            mailMessage.setTo(user.getEmail());
-            mailMessage.setSubject("Complete Registration!");
-            mailMessage.setFrom("xxx@gmail.com");
-            mailMessage.setText("To confirm your account, please click here : "
-            +"http://localhost:8085/confirm-account?token="+confirmationToken.getConfirmationToken());
-
-            emailSenderService.sendEmail(mailMessage);
-
-            modelAndView.addObject("emailId", user.getEmail());
-
-            modelAndView.setViewName("successfulRegisteration");
-        }
-
-        return modelAndView;
-    }
-
     @RequestMapping(value="/confirm-account", method= {RequestMethod.GET, RequestMethod.POST})
     public ModelAndView confirmUserAccount(ModelAndView modelAndView, @RequestParam("token")String confirmationToken)
     {
@@ -221,7 +183,7 @@ public class UserRegistrationController {
 
         if(token != null)
         {
-            User user = userRepository.findByEmailIgnoreCase(token.getUser().getEmail());
+            User user = userRepository.findByEmailIgnoreCase(token.getUser().get().getEmail());
             user.setEnabled(true);
             userRepository.save(user);
             modelAndView.setViewName("accountVerified");
