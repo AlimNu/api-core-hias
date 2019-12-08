@@ -77,6 +77,9 @@ public class User implements UserDetails {
 	@JoinColumn(name = "user_id", nullable = false)
 	@JsonIgnore
 	private UserRegister userRegister;
+	
+	@Column(name = "enabled")
+    private boolean enabled;
 
 	@ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
 	@JoinTable(name = "users_roles", joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"), inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id"))
@@ -96,9 +99,11 @@ public class User implements UserDetails {
 //	@OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, mappedBy = "userProperties")
 //	private Video userProperties;
 
+	
 	public User() {
-
-	}
+        super();
+        this.enabled=false;
+    }
 
 
 	public Collection<Role> getRoles() {
@@ -274,4 +279,9 @@ public class User implements UserDetails {
 	}
 
 
+	public void setEnabled(boolean enabled) {
+		this.enabled = enabled;
+	}
+
+	
 }

@@ -44,5 +44,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
 	@Query("Select c from User c where c.fullname like %:fullname%")
 	List<User> findByFullName(@Param("fullname") String fullname);
+	
+	User findByEmailIgnoreCase(String emailId);
 
 }
