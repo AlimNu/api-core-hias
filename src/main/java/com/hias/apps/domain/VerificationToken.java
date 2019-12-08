@@ -12,11 +12,12 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToOne;
+import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
 
-
+@Table(name = "token")
 @Entity
 public class VerificationToken {
 		@Id
@@ -31,16 +32,16 @@ public class VerificationToken {
 	    private Date createdDate;
 
 	    @OneToOne(targetEntity = User.class, fetch = FetchType.EAGER)
-	    @JoinColumn(name = "user_id", referencedColumnName = "id")
-	    private Optional<User> user;
+	    @JoinColumn(nullable = false, name = "user_id")
+	    private User user;
 
 	    public VerificationToken() {
 			// TODO Auto-generated constructor stub
 		}
-	    public VerificationToken(Optional<User> user, String tokens) {
+	    public VerificationToken(User user, String token) {
 	        this.user = user;
 	        createdDate = new Date();
-	        confirmationToken = tokens;
+	        confirmationToken = token;
 	    }
 
 		public long getTokenid() {
@@ -66,11 +67,12 @@ public class VerificationToken {
 		public void setCreatedDate(Date createdDate) {
 			this.createdDate = createdDate;
 		}
-		public Optional<User> getUser() {
+		public User getUser() {
 			return user;
 		}
-		public void setUser(Optional<User> user) {
+		public void setUser(User user) {
 			this.user = user;
-		}	
+		}
 
+		
 }

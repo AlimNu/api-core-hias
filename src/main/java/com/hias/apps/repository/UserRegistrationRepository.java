@@ -26,7 +26,7 @@ public interface UserRegistrationRepository extends JpaRepository<UserRegister, 
 	@Query("UPDATE UserRegister SET isConfirm = true  WHERE username = :username")
 	public void updateIsConfirmByUsername(@Param("username") String username); 
 	
-	@Query("Select count(*) FROM UserRegister where username = :username OR email = :email")
+	@Query("Select count(*) FROM UserRegister where username = :username AND email = :email")
 	public int countUserExist(@Param("username") String username, @Param("email")String email);
 	
 	@Query(

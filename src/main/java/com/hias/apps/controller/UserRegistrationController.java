@@ -118,19 +118,19 @@ public class UserRegistrationController {
 						listRole.add("MEMBER");
 						String tokens = jwtTokenProvider.createToken(userRegister.getUsername(), listRole);
 						
-						VerificationToken confirmationToken = new VerificationToken(user, tokens);
+						VerificationToken confirmationToken = new VerificationToken(user.get(), tokens);
 
 			            confirmationTokenRepository.save(confirmationToken);
 
 			            SimpleMailMessage mailMessage = new SimpleMailMessage();
 			            mailMessage.setTo(user.get().getEmail());
 			            mailMessage.setSubject("Complete Registration!");
-			            mailMessage.setFrom("xxx@gmail.com");
+			            mailMessage.setFrom("example@gmail.com");
 			            mailMessage.setText("To confirm your account, please click here : "
 			            +"http://localhost:8085/register/confirm-account?token="+confirmationToken.getConfirmationToken());
 			            
 			            userProfile = registerService.convertObjectUserProofile(user.get());
-			            emailSenderService.sendEmail(mailMessage);
+//			            emailSenderService.sendEmail(mailMessage);
 						mapData.put("user", userProfile);
 						mapData.put("type", "Bearer");
 						mapData.put("token", tokens);
@@ -182,7 +182,7 @@ public class UserRegistrationController {
 
         if(token != null)
         {
-            User user = userRepository.findByEmailIgnoreCase(token.getUser().get().getEmail());
+            User user = userRepository.findByEmailIgnoreCase(token.getUser().getEmail());
             user.setEnabled(true);
             userRepository.save(user);
             modelAndView.setViewName("accountVerified");
