@@ -31,16 +31,16 @@ public class VerificationToken {
 	    private Date createdDate;
 
 	    @OneToOne(targetEntity = User.class, fetch = FetchType.EAGER)
-	    @JoinColumn(nullable = false, name = "user_id")
+	    @JoinColumn(name = "user_id", referencedColumnName = "id")
 	    private Optional<User> user;
 
 	    public VerificationToken() {
 			// TODO Auto-generated constructor stub
 		}
-	    public VerificationToken(Optional<User> user) {
+	    public VerificationToken(Optional<User> user, String tokens) {
 	        this.user = user;
 	        createdDate = new Date();
-	        confirmationToken = UUID.randomUUID().toString();
+	        confirmationToken = tokens;
 	    }
 
 		public long getTokenid() {
@@ -71,6 +71,6 @@ public class VerificationToken {
 		}
 		public void setUser(Optional<User> user) {
 			this.user = user;
-		}
+		}	
 
 }

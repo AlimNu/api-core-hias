@@ -117,25 +117,24 @@ public class UserRegistrationController {
 						List<String> listRole = new ArrayList<String>();
 						listRole.add("MEMBER");
 						String tokens = jwtTokenProvider.createToken(userRegister.getUsername(), listRole);
-						userProfile = registerService.convertObjectUserProofile(user.get());
+						
+						VerificationToken confirmationToken = new VerificationToken(user, tokens);
+
+			            confirmationTokenRepository.save(confirmationToken);
+
+			            SimpleMailMessage mailMessage = new SimpleMailMessage();
+			            mailMessage.setTo(user.get().getEmail());
+			            mailMessage.setSubject("Complete Registration!");
+			            mailMessage.setFrom("xxx@gmail.com");
+			            mailMessage.setText("To confirm your account, please click here : "
+			            +"http://localhost:8085/register/confirm-account?token="+confirmationToken.getConfirmationToken());
+			            
+			            userProfile = registerService.convertObjectUserProofile(user.get());
+			            emailSenderService.sendEmail(mailMessage);
 						mapData.put("user", userProfile);
 						mapData.put("type", "Bearer");
 						mapData.put("token", tokens);
 					}
-
-
-		            VerificationToken confirmationToken = new VerificationToken(user);
-
-		            confirmationTokenRepository.save(confirmationToken);
-
-		            SimpleMailMessage mailMessage = new SimpleMailMessage();
-		            mailMessage.setTo(user.get().getEmail());
-		            mailMessage.setSubject("Complete Registration!");
-		            mailMessage.setFrom("xxx@gmail.com");
-		            mailMessage.setText("To confirm your account, please click here : "
-		            +"http://localhost:8085/register/confirm-account?token="+confirmationToken.getConfirmationToken());
-
-		            emailSenderService.sendEmail(mailMessage);
 
 					Map<String, Object> mapResponse = new HashMap<>();
 					mapResponse.put("register", mapData);
